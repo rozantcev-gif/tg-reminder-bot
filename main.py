@@ -3,6 +3,8 @@ import telebot
 import datetime as dt
 import pytz
 from flask import Flask
+from openai import OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Берём токен и chat_id из переменных окружения Render
 TOKEN = os.getenv("BOT_TOKEN")
@@ -38,3 +40,36 @@ def webhook():
 
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+# ===== === AI-помощник в боте ===== ===
+
+def ai_answer(text: str) -> str:
+    """
+    Короткий, деловой ответ на русском.
+    """
+    try:
+        resp = client.responses.create(
+            model="gpt-4o-mini",
+            input=f"Отвечай кратко и по делу на русском. Вход: {text}"
+        )
+        return resp.output_text.strip()
+    except Exception as e:
+        return f"⚠️ Ошибка AI: {e}"
+
+@bot.message_handler(commands=['ai', 'ask'])
+def ai_handler(message):
+    """
+    Использование:
+    /ai ТЗ для ответа
+    /ask вопрос
+    Если текста нет — подставит шаблон.
+    """
+    parts = message.text.split(maxsplit=1)
+    user_text = parts[1].strip() if len(parts) > 1 else "Сделай план на неделю по ИИ-обучению для предпринимателя."
+
+    bot.send_chat_action(message.chat.id, 'typing')
+    try:
+        answer = ai_answer(user_text)
+        bot.reply_to(message, answer)
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка AI: {e}")
