@@ -12,6 +12,13 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 bot = telebot.TeleBot(TOKEN)
 server = Flask(__name__)
+# --- запустить приём апдейтов Телеграм в фоне ---
+import threading
+def _start_polling():
+    bot.infinity_polling(timeout=60, long_polling_timeout=50)
+
+threading.Thread(target=_start_polling, daemon=True).start()
+# --- конец блока ---
 
 TZ = pytz.timezone("Asia/Novosibirsk")  # Кемерово
 
