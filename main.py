@@ -3,8 +3,8 @@ import telebot
 import datetime as dt
 import pytz
 from flask import Flask
-from openai import OpenAI
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from groq import Groq
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # Берём токен и chat_id из переменных окружения Render
 TOKEN = os.getenv("BOT_TOKEN")
@@ -55,11 +55,16 @@ def ai_answer(text: str) -> str:
     Короткий, деловой ответ на русском.
     """
     try:
-        resp = client.responses.create(
-            model="gpt-4o-mini",
-            input=f"Отвечай кратко и по делу на русском. Вход: {text}"
+        resp = client.chat.completions.create(
+            model="llama3-70b-8192",  # быстрый и бесплатный в Groq
+            messages=[
+                {"role": "system", "content": "Отвечай кратко и по делу на русском языке."},
+                {"role": "user", "content": text}
+            ],
+            temperature=0.3,
+            max_tokens=400,
         )
-        return resp.output_text.strip()
+        return resp.choices[0].message.content.strip()
     except Exception as e:
         return f"⚠️ Ошибка AI: {e}"
 
