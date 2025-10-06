@@ -56,7 +56,7 @@ def ai_answer(text: str) -> str:
     """
     try:
         resp = client.chat.completions.create(
-            model="llama3-70b-8192",  # быстрый и бесплатный в Groq
+            model="llama-3.1-8b-instant",  # быстрый и бесплатный в Groq
             messages=[
                 {"role": "system", "content": "Отвечай кратко и по делу на русском языке."},
                 {"role": "user", "content": text}
